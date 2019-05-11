@@ -1,30 +1,5 @@
 # frozen_string_literal: true
 
-# A day track represents the time consumption of a region.
-# The remaining days will be subtracted by the i-th discover
-# of the same region.
-class DayTrack
-  attr_reader :size
-
-  def initialize(costs)
-    @costs = costs
-    @size = costs.size
-    @current = 0
-  end
-
-  # @return [Integer]
-  #   If not used up, return the cost, otherwise nil.
-  def use
-    raise 'DayTrack used up' if @current >= @size
-
-    @costs[@current].tap { @current += 1 }
-  end
-
-  def reset
-    @current = 0
-  end
-end
-
 # When searching,
 # 1. Each time roll 2 dices, fill in to any empty spaces of the 3x2 box
 # 2. Repeat for 3 times until all spaces all filled.
@@ -37,22 +12,13 @@ class SearchBox
 
   def initialize
     @slots = Array.new(ROWS) { Array.new(COLS) }
-    @filled = 0
   end
 
-  # @return [Array<Array<Integer>>] Available slot indexes.
-  def emptys
-    ROWS.product(COLS).select { |row, col| @slots[row][col].nil? }
-  end
-
-  # @return [Boolean] If successfully filled in.
   def fill(row, col, digit)
-    if @slots[row][col]
-      false
-    else
-      @filled += 1
-      @slots[row][col] = digit
-    end
+    raise 'Index out of bound!' unless row >= 0 && row < ROWS && col >= 0 && col < COLS
+    raise 'Slot already filled!' if @slots[row][col]
+
+    @slots[row][col] = digit
   end
 
   # @return [Integer,Nil] If not filled, nil; otherwise the search result.
@@ -71,68 +37,70 @@ end
 # 3. Each round the player can do a search, and consume the day(s) on time track;
 # 4*. If all search boxes are used up, you can consume 1 day to get the construct/component.
 class Region
+  attr_reader :found_construct, :tries, :day_track
+  attr_reader :construct, :component
+
+  # @param day_track [Array<Integer>] Costs of each search.
+  # @param construct [Construct]
+  #   Find all constructs in all regions to build the Utopia Engine.
+  # @param component [Class] Can find multiple components to connect constructs.
   def initialize(day_track:, construct:, component:)
     @day_track = day_track
-    @chances = @day_track.size
     @construct = construct
     @component = component
+    @found_construct = false
     reset
   end
 
   def reset
-    @day_track.reset
     @search_boxes = Array.new(@day_track.size) { SearchBox.new }
-    @next_search = 0
+    @tries = 0
   end
 
-  # @return [Array<Symbol>] The possible action(s) at the current state
-  def actions
-    if @searched == @chances
-      @construct ? [:final_search] : []
+  def search
+    raise 'Chances used up' if @tries == @day_track.size
+
+    yield @search_boxes[@tries]
+    @tries += 1
+  end
+
+  # @param reward [Symbol] :construct or :component
+  # @return [Construct,Component]
+  def final_search(reward:)
+    case reward
+    when :construct
+      @construct.tap { construct_found }
+    when :component
+      @component.new
     else
-      [:search]
+      raise "Unknown reward '#{reward}'"
     end
   end
 
-  # 1. Spent time on TimeTrack from cost on DayTrack;
-  # 2. Search one search box
-  # @param time_track [TimeTrack]
-  # @param searcher [#search]
-  # @return [Relic]
-  def search(time_track, searcher)
-    raise 'Normal searches used up' if @next_search == @chances
+  def construct_found
+    raise 'Construct already found!' if @found_construct
 
-    cost = @day_track[@next_search].use
-    time_track.spent(cost.days)
-    searcher.search(@search_boxes[@next_search])
-    case box.result
-    when 0
-      signal :perfect_zero, self
-    when 1..10
-      reward = @construct
-      @construct = nil
+    @found_construct = true
+    signal :found_construct, region: self
+  end
+
+  # @param value [Integer] The value calculated from the search box.
+  # @return [Array<Construct,Component>,Nil]
+  def outcome(value)
+    case value
+    when 0..10
+      signal :perfect_zero, region: self if value == 0
+      if @found_construct
+        reward = Array.new(value == 0 ? 2 : 1) { @component.new }
+      else
+        construct_found
+        reward = @construct
+      end
     when 11..99
       reward = @component.new
     else
-      signal :encounter, self
+      signal :encounter, region: self, value: value
     end
-    @next_search += 1
     reward
-  end
-
-  # @param time_track [TimeTrack]
-  # @param target [Symbol] :construct or :component
-  # @return [Relic]
-  def final_search(time_track, target:)
-    raise 'Relic already taken' unless @construct
-    raise "Unknown target '#{target}'" unless %i[construct component].include?(target)
-
-    time_track.spent(1.day)
-    case target
-    when :construct
-      @construct.tap { @construct = nil }
-    else
-      @component.new
-    end
   end
 end
