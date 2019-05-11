@@ -33,4 +33,12 @@ class DicePool
     yield @results[index]
     @results[index] = nil
   end
+
+  def availables
+    (0...@capacity).select { |i| @results[i] }
+  end
+
+  def empty?
+    availables.empty?
+  end
 end
