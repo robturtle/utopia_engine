@@ -65,20 +65,20 @@ end
 # 1. A region has a day track with several rounds;
 # 2. Each round has a corresponding search box;
 # 3. Each round the player can do a search, and consume the day(s) on time track;
-# 4*. If all search boxes are used up, you can consume 1 day to get the relic.
+# 4*. If all search boxes are used up, you can consume 1 day to get the construct/component.
 class Region
-  def initialize(day_track:, relic:)
+  def initialize(day_track:, construct:)
     @day_track = day_track
     @search_boxes = Array.new(@day_track.size) { SearchBox.new }
     @chances = @day_track.size
     @next_search = 0
-    @relic = relic
+    @construct = construct
   end
 
   # @return [Array<Symbol>] The possible action(s) at the current state
   def actions
     if @searched == @chances
-      @relic ? [:final_search] : []
+      @construct ? [:final_search] : []
     else
       [:search]
     end
@@ -95,8 +95,8 @@ class Region
     cost = @day_track[@next_search].use
     time_track.spent(cost.days)
     if searcher.search(@search_boxes[@next_search])
-      reward = @relic
-      @relic = nil
+      reward = @construct
+      @construct = nil
     end
     @next_search += 1
     reward
@@ -104,9 +104,9 @@ class Region
 
   # @return [Relic]
   def final_search(time_track)
-    raise 'Relic already taken' unless @relic
+    raise 'Relic already taken' unless @construct
 
     time_track.spent(1.day)
-    @relic.tap { @relic = nil }
+    @construct.tap { @construct = nil }
   end
 end
