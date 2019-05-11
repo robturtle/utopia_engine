@@ -1,33 +1,18 @@
 # frozen_string_literal: true
 
+require_relative 'dice_board'
+
 # When searching,
 # 1. Each time roll 2 dices, fill in to any empty spaces of the 3x2 box
 # 2. Repeat for 3 times until all spaces all filled.
 # 3. Now you get one 3-digit number from 1st row and one from 2nd row.
 # 4. search_result = 1st-row number - 2nd row number
-class SearchBox
-  ROWS = 2
-  COLS = 3
-  SLOTS = ROWS * COLS
-
-  attr_reader :slots
-
-  def initialize
-    @slots = Array.new(ROWS) { Array.new(COLS) }
-  end
-
-  def fill(row, col, digit)
-    raise 'Index out of bound!' unless row >= 0 && row < ROWS && col >= 0 && col < COLS
-    raise 'Slot already filled!' if @slots[row][col]
-
-    slots[row][col] = digit
-  end
-
+class SearchBox < DiceBoard.new(2, 3)
   # @return [Integer,Nil] If not filled, nil; otherwise the search result.
   def result
     return @result if @result
 
-    if @filled == SLOTS
+    if filled?
       upper, lower = slots.map { |row| row.join('').to_i }
       @result = upper - lower
     end
@@ -40,8 +25,11 @@ end
 # 4*. If all search boxes are used up, you can consume 1 day to get the construct/component.
 class Region
   attr_reader :search_boxes
-  attr_reader :found_construct, :tries, :day_track
+  attr_reader :tries, :day_track
   attr_reader :construct, :component
+
+  attr_reader :found_construct
+  alias found_construct? found_construct
 
   # @param day_track [Array<Integer>] Costs of each search.
   # @param construct [Construct]
