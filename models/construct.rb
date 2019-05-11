@@ -91,3 +91,68 @@ class Construct::Activation::Channel < DiceBoard.new(2, 4)
     (0...cols).map(&method(:col_result))
   end
 end
+
+# 1. We need to connect all the constructs to assemble the Utopia Engine;
+# 2. Each connection connects 2 constructs;
+# 3. Each connection requires one kind of component;
+class Connection < DiceBoard.new(2, 3)
+  attr_reader :construct1, :construct2
+  attr_reader :component_type
+
+  attr_reader :component
+  attr_reader :waste_basket
+
+  def initialize(construct1, construct2, component_type)
+    super()
+    @construct1 = construct1
+    @construct2 = construct2
+    @component_type = component_type
+  end
+
+  def fill(*args)
+    raise 'Component required!' unless component
+
+    super
+  end
+
+  def component=(one)
+    raise 'Already inserted component!' if @component
+    raise 'Component type mismatched!' if one.type != component_type
+
+    @component = one
+  end
+
+  def waste_basket=(value)
+    raise 'Waste basket already full!' if waste_basket
+
+    @waste_basket = value
+  end
+
+  # @return [Integer]
+  def col_result(col)
+    @col_results ||= Array.new(cols)
+    return @col_results[col] if @col_results[col]
+    return nil unless slots[0][col] && slots[1][col]
+
+    @col_results[col] = diff = @slots[0][col] - @slots[1][col]
+    return unless diff.negative?
+
+    @component = nil
+    @col_results[col] = 2
+    signal :connection_explode, connection: self if diff.negative?
+  end
+
+  # @return [Array<Integer>] Value of results
+  def col_results
+    (0...cols).map(&method(:col_result))
+  end
+
+  def connected?
+    col_results.all?
+  end
+
+  # @return [Integer] The higher the number the more glitch we have.
+  def glitch
+    col_results.compact.reduce(0, &:+)
+  end
+end

@@ -30,6 +30,10 @@ class DiceBoard
         slots[row][col] = value
       end
 
+      def reset
+        @slots = Array.new(rows) { Array.new(cols) }
+      end
+
       # @return [Array<Tuple<Integer,Integer>>]
       #   The list of (row,col) with empty slot.
       def emptys
@@ -40,7 +44,7 @@ class DiceBoard
         emptys.empty?
       end
 
-      # ===== 1-dimentional indexing supports
+      # <===== 1-dimentional indexing supports
       # This is for the convenient of CLI UI so the human player
       # can input a single number to fill in the dice value.
 
@@ -69,6 +73,7 @@ class DiceBoard
       def empty_indexes
         emptys.map { |r, c| idx(r, c) }
       end
+      # =====> 1-dimentional indexing supports
     end
     clazz.class_eval "def rows; #{rows}; end", __FILE__, __LINE__
     clazz.class_eval "def cols; #{cols}; end", __FILE__, __LINE__
