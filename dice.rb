@@ -15,6 +15,7 @@ class Dice
 end
 
 class DicePool
+  # @return [Array<Integer>]
   attr_reader :results
 
   def initialize(capacity, dice: Dice.new)
