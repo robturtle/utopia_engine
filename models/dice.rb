@@ -26,12 +26,11 @@ class DicePool
   end
 
   # @return [void] Yield the result if present, otherwise do nothing.
-  def use(index)
+  def take(index)
     raise 'Invalid index of dice pool' if index.negative? || index >= @capacity
     raise 'The result already been taken' if @results[index].nil?
 
-    yield @results[index]
-    @results[index] = nil
+    @results[index].tap { @results[index] = nil }
   end
 
   def availables

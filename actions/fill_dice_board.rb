@@ -24,21 +24,29 @@ class FillDiceBoard
     signal :new_dice_pool
   end
 
+  def pick_dice(idx)
+    raise 'Illegal dice index!' unless available_source.include?(idx)
+    raise 'Already one dice on the hand!' if @dice
+
+    @dice = @pool.take(idx)
+  end
+
+  def fill(idx)
+    raise 'No dice on the hand!' unless @dice
+    raise 'Illegal board index!' unless available_dests.include?(idx)
+
+    @dice_board.fill_idx(idx, @dice)
+    signal :dice_fill, filler: self, value: @dice, to: idx
+    signal :board_completed, board: @dice_board if @dice_board.filled?
+    signal :dices_used_up, filler: self if @pool.empty?
+    @dice = nil
+  end
+
   def available_source
     @pool.availables
   end
 
   def available_dests
     @dice_board.empty_indexes
-  end
-
-  def fill(from:, to:)
-    raise 'Illegal source index!' unless available_source.include?(from)
-    raise 'Illegal destination index!' unless available_dests.include?(to)
-
-    @pool.use(from) { |value| @dice_board.fill_idx(to, value) }
-    signal :dice_fill, filler: self, from: from, to: to
-    signal :dices_used_up, filler: self if @pool.empty?
-    signal :board_completed, board: @dice_board if @dice_board.filled?
   end
 end

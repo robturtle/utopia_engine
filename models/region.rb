@@ -33,11 +33,11 @@ class Region
     @tries = 0
   end
 
-  def search
+  # @return [SearchBox]
+  def search_box
     raise 'Chances used up' if @tries == @day_track.size
 
-    yield @search_boxes[@tries]
-    @tries += 1
+    @search_boxes[@tries]
   end
 
   # @param reward [Symbol] :construct or :component
