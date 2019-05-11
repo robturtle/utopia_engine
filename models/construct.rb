@@ -37,7 +37,9 @@ class Construct::Activation
   # @param construct [Construct]
   # @param channel_num [Integer] Default to CHANNEL_NUM
   # @param activate_shreshold [Integer] Default to ACTIVATE_SHRESHOLD
-  def initialize(construct, channel_num: CHANNEL_NUM, activate_shreshold: ACTIVATE_SHRESHOLD)
+  def initialize(construct,
+                 channel_num: CHANNEL_NUM,
+                 activate_shreshold: ACTIVATE_SHRESHOLD)
     @construct = construct
     @channels = Array.new(channel_num) { Channel.new(self) }
     @shreshold = activate_shreshold
@@ -59,10 +61,10 @@ class Construct::Activation::Channel < DiceBoard.new(2, 4)
 
   def fill(row, col, value)
     super
-    if slots[0][col] == slots[1][col]
-      slots[0][col] = slots[1][col] = nil
-      signal :channel_cancel_zero, channel: self
-    end
+    return unless slots[0][col] == slots[1][col]
+
+    slots[0][col] = slots[1][col] = nil
+    signal :channel_cancel_zero, channel: self
   end
 
   # @param col [Integer]
@@ -79,7 +81,7 @@ class Construct::Activation::Channel < DiceBoard.new(2, 4)
       when 4
         1
       else
-        signal :channel_activate_damage, channel: self if diff < 0
+        signal :channel_activate_damage, channel: self if diff.negative?
         0
       end
   end

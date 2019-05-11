@@ -4,8 +4,10 @@ require_relative 'dice_board'
 
 # 1. A region has a day track with several rounds;
 # 2. Each round has a corresponding search box;
-# 3. Each round the player can do a search, and consume the day(s) on time track;
-# 4*. If all search boxes are used up, you can consume 1 day to get the construct/component.
+# 3. Each round the player can do a search, and consume the day(s) on time
+#    track;
+# 4*. If all search boxes are used up, you can consume 1 day to get the
+#     construct/component.
 class Region
   attr_reader :search_boxes
   attr_reader :tries, :day_track
@@ -63,9 +65,9 @@ class Region
   def outcome(value)
     case value
     when 0..10
-      signal :perfect_zero, region: self if value == 0
+      signal :perfect_zero, region: self if value.zero?
       if @found_construct
-        reward = Array.new(value == 0 ? 2 : 1) { @component.new }
+        reward = Array.new(value.zero? ? 2 : 1) { @component.new }
       else
         construct_found
         reward = @construct
@@ -95,10 +97,9 @@ class Region::SearchBox < DiceBoard.new(2, 3)
   # @return [Integer,Nil] If not filled, nil; otherwise the search result.
   def result
     return @result if @result
+    return unless filled?
 
-    if filled?
-      upper, lower = slots.map { |row| row.join('').to_i }
-      @result = upper - lower
-    end
+    upper, lower = slots.map { |row| row.join('').to_i }
+    @result = upper - lower
   end
 end
