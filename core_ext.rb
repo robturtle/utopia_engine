@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 class Integer
-  alias day itself
+  alias_method day itself
 end
 
 class Object
