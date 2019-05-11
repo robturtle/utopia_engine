@@ -2,30 +2,6 @@
 
 require_relative 'dice_board'
 
-# When searching,
-# 1. Each time roll 2 dices, fill in to any empty spaces of the 3x2 box
-# 2. Repeat for 3 times until all spaces all filled.
-# 3. Now you get one 3-digit number from 1st row and one from 2nd row.
-# 4. search_result = 1st-row number - 2nd row number
-class SearchBox < DiceBoard.new(2, 3)
-  attr_reader :region
-
-  def initialize(region)
-    super()
-    @region = region
-  end
-
-  # @return [Integer,Nil] If not filled, nil; otherwise the search result.
-  def result
-    return @result if @result
-
-    if filled?
-      upper, lower = slots.map { |row| row.join('').to_i }
-      @result = upper - lower
-    end
-  end
-end
-
 # 1. A region has a day track with several rounds;
 # 2. Each round has a corresponding search box;
 # 3. Each round the player can do a search, and consume the day(s) on time track;
@@ -100,5 +76,29 @@ class Region
       signal :encounter, region: self, value: value
     end
     reward
+  end
+end
+
+# When searching,
+# 1. Each time roll 2 dices, fill in to any empty spaces of the 3x2 box
+# 2. Repeat for 3 times until all spaces all filled.
+# 3. Now you get one 3-digit number from 1st row and one from 2nd row.
+# 4. search_result = 1st-row number - 2nd row number
+class Region::SearchBox < DiceBoard.new(2, 3)
+  attr_reader :region
+
+  def initialize(region)
+    super()
+    @region = region
+  end
+
+  # @return [Integer,Nil] If not filled, nil; otherwise the search result.
+  def result
+    return @result if @result
+
+    if filled?
+      upper, lower = slots.map { |row| row.join('').to_i }
+      @result = upper - lower
+    end
   end
 end
