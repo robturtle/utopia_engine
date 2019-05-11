@@ -1,9 +1,11 @@
 # frozen_string_literal: true
 
+# Added readability unit annotations.
 class Integer
-  alias_method day itself
+  alias day itself
 end
 
+# A mock of event system.
 class Object
   def signal(message, *args)
     puts "SIGNAL: #{message}(#{args.join(', ')})"
