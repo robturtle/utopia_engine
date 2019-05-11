@@ -19,6 +19,10 @@ class DayTrack
 
     @costs[@current].tap { @current += 1 }
   end
+
+  def reset
+    @current = 0
+  end
 end
 
 # When searching,
@@ -69,11 +73,16 @@ end
 class Region
   def initialize(day_track:, construct:, component:)
     @day_track = day_track
-    @search_boxes = Array.new(@day_track.size) { SearchBox.new }
     @chances = @day_track.size
-    @next_search = 0
     @construct = construct
     @component = component
+    reset
+  end
+
+  def reset
+    @day_track.reset
+    @search_boxes = Array.new(@day_track.size) { SearchBox.new }
+    @next_search = 0
   end
 
   # @return [Array<Symbol>] The possible action(s) at the current state
@@ -95,9 +104,17 @@ class Region
 
     cost = @day_track[@next_search].use
     time_track.spent(cost.days)
-    if searcher.search(@search_boxes[@next_search])
+    searcher.search(@search_boxes[@next_search])
+    case box.result
+    when 0
+      signal :perfect_zero, self
+    when 1..10
       reward = @construct
       @construct = nil
+    when 11..99
+      reward = @component.new
+    else
+      signal :encounter, self
     end
     @next_search += 1
     reward
