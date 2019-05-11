@@ -135,11 +135,12 @@ class Connection < DiceBoard.new(2, 3)
     return nil unless slots[0][col] && slots[1][col]
 
     @col_results[col] = diff = @slots[0][col] - @slots[1][col]
-    return unless diff.negative?
+    return diff unless diff.negative?
 
     @component = nil
     @col_results[col] = 2
     signal :connection_explode, connection: self if diff.negative?
+    @col_results[col]
   end
 
   # @return [Array<Integer>] Value of results
