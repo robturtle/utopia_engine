@@ -9,3 +9,6 @@ Metrics/MethodLength:
 
 Style/ClassAndModuleChildren:
   Enabled: false
+
+Style/EmptyMethod:
+  AutoCorrect: false
