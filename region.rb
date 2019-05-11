@@ -8,6 +8,13 @@ require_relative 'dice_board'
 # 3. Now you get one 3-digit number from 1st row and one from 2nd row.
 # 4. search_result = 1st-row number - 2nd row number
 class SearchBox < DiceBoard.new(2, 3)
+  attr_reader :region
+
+  def initialize(region)
+    super()
+    @region = region
+  end
+
   # @return [Integer,Nil] If not filled, nil; otherwise the search result.
   def result
     return @result if @result
@@ -44,7 +51,7 @@ class Region
   end
 
   def reset
-    @search_boxes = Array.new(@day_track.size) { SearchBox.new }
+    @search_boxes = Array.new(@day_track.size) { SearchBox.new(self) }
     @tries = 0
   end
 
