@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'state'
+
 class Action
   class NoActionSelected < State
     action :choose_action, :action_selected, -> { state.action_names }
