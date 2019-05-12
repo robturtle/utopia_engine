@@ -7,6 +7,10 @@ end
 
 # A mock of event system.
 class Object
+  def try(name, *args)
+    send(name, *args) if respond_to?(name)
+  end
+
   def signal(message, *args)
     puts "SIGNAL: #{message}(#{args.join(', ')})"
     nil
