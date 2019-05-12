@@ -29,7 +29,7 @@ class Action
       @action = action
     end
 
-    def take_input(input)
+    def take_input(input = nil)
       @input = input
     end
 
@@ -39,7 +39,7 @@ class Action
   end
 
   class InputTaken < State
-    action :act, :new_action
+    action :act, -> { NoActionSelected.new(@new_state) }
 
     attr_reader :state
 
@@ -51,10 +51,6 @@ class Action
 
     def act
       @new_state = @state.transform(@action, @input)
-    end
-
-    def new_action
-      NoActionSelected.new(@new_state)
     end
   end
 
@@ -86,5 +82,16 @@ class Action
 
   def act
     @meta_state = @meta_state.transform(:act)
+  end
+
+  def run(input = nil)
+    self.input = input
+    act
+  end
+
+  def take_action(action, input)
+    self.action = action
+    self.input = input
+    act
   end
 end
