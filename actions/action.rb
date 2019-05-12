@@ -88,12 +88,12 @@ class Action
     signal :state_change, from: old_state, to: state
   end
 
-  def run(input = nil)
+  def act_with_input(input = nil)
     self.input = input
     act
   end
 
-  def take_action(action, input)
+  def run(action, input = nil)
     self.action = action
     self.input = input
     act
