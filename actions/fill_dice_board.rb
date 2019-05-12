@@ -8,45 +8,58 @@
 #    dice pool to fill the dice board.
 # 3. A round completed if board filled or dice pool used up.
 # 4. The action compleeted if board filled.
-class FillDiceBoard
-  POOL_SIZE = 2
+module FillDiceBoard
+  NoDiceOnHand = Struct.new(:pool, :board) do
+    POOL_SIZE = 2
 
-  # @param dice_board [DiceBoard]
-  def initialize(dice_board)
-    @dice_board = dice_board
-    new_dice_pool
+    PARAMS = {
+      pick_dice: -> { pool.availables }
+    }.freeze
+
+    def actions
+      if pool.empty?
+        [:new_dice_pool]
+      else
+        [:pick_dice]
+      end
+    end
+
+    def new_dice_pool
+      self.pool = DicePool.new(POOL_SIZE)
+      self
+    end
+
+    def pick_dice(idx)
+      DiceOnHand.new(pool.take(idx), pool, board)
+    end
   end
 
-  def new_dice_pool
-    raise 'Still has not used dice!' if @pool && !@pool.empty?
+  DiceOnHand = Struct.new(:hand, :pool, :board) do
+    PARAMS = {
+      fill_dice: -> { board.empty_indexes }
+    }.freeze
 
-    @pool = DicePool.new(POOL_SIZE)
-    signal :new_dice_pool
+    def actions
+      [:fill_dice]
+    end
+
+    def fill_dice(idx)
+      board.fill_idx(idx, hand)
+      if board.filled?
+        BoardCompleted.new(board)
+      else
+        NoDiceOnHand.new(pool, board)
+      end
+    end
   end
 
-  def pick_dice(idx)
-    raise 'Illegal dice index!' unless available_source.include?(idx)
-    raise 'Already one dice on the hand!' if @dice
+  BoardCompleted = Struct.new(:board) do
+    def actions
+      [:return]
+    end
 
-    @dice = @pool.take(idx)
-  end
-
-  def fill(idx)
-    raise 'No dice on the hand!' unless @dice
-    raise 'Illegal board index!' unless available_dests.include?(idx)
-
-    @dice_board.fill_idx(idx, @dice)
-    signal :dice_fill, filler: self, value: @dice, to: idx
-    signal :board_completed, board: @dice_board if @dice_board.filled?
-    signal :dices_used_up, filler: self if @pool.empty?
-    @dice = nil
-  end
-
-  def available_source
-    @pool.availables
-  end
-
-  def available_dests
-    @dice_board.empty_indexes
+    def return
+      signal :fill_board_completed, board: board
+    end
   end
 end
