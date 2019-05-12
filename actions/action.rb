@@ -81,7 +81,9 @@ class Action
   end
 
   def act
+    old_state = state
     @meta_state = @meta_state.transform(:act)
+    signal :state_change, from: old_state, to: state
   end
 
   def run(input = nil)
