@@ -10,7 +10,7 @@ class DiceBoard
     raise 'rows must > 0' unless rows.positive?
     raise 'cols must > 0' unless cols.positive?
 
-    clazz = Class.new(DiceBoard) do
+    clazz = Class.new do
       # @return [Array<Array<Integer>>] values of the board
       attr_reader :slots
 
