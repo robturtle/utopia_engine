@@ -21,6 +21,14 @@ class Object
   end
 
   def signal(message, *args)
+    args = args.map do |a|
+      case a
+      when Hash
+        a.transform_values(&:class)
+      else
+        a.class
+      end
+    end
     puts "SIGNAL: #{message}(#{args.join(', ')})"
     nil
   end
