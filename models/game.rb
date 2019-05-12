@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative 'construct'
+require_relative 'player'
+require_relative 'region'
+
 class Game
   COMPONENT_TYPES = [
   ].freeze
