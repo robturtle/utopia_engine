@@ -7,57 +7,25 @@ require_relative 'dice_board'
 # 3. Each round the player can do a search, and consume the day(s) on time
 #    track;
 # 4*. If all search boxes are used up, you can consume 1 day to get the
-#     construct/component.
+#     construct/component_type.
 class Region
   attr_reader :search_boxes
-  attr_reader :tries, :day_track
-  attr_reader :construct, :component
+  attr_reader :day_track
+  attr_reader :construct, :component_type
 
-  attr_reader :found_construct
-  alias found_construct? found_construct
-
-  # @param day_track [Array<Integer>] Costs of each search.
+  # @param day_track [DayTrack] Costs of each search.
   # @param construct [Construct]
   #   Find all constructs in all regions to build the Utopia Engine.
-  # @param component [Class] Can find multiple components to connect constructs.
-  def initialize(day_track:, construct:, component:)
+  # @param component_type [Class] Can find multiple component_types to connect constructs.
+  def initialize(day_track:, construct:, component_type:)
     @day_track = day_track
     @construct = construct
-    @component = component
-    @found_construct = false
+    @component_type = component_type
     reset
   end
 
   def reset
     @search_boxes = Array.new(@day_track.size) { SearchBox.new(self) }
-    @tries = 0
-  end
-
-  # @return [SearchBox]
-  def search_box
-    raise 'Chances used up' if @tries == @day_track.size
-
-    @search_boxes[@tries]
-  end
-
-  # @param reward [Symbol] :construct or :component
-  # @return [Construct,Component]
-  def final_search(reward:)
-    case reward
-    when :construct
-      @construct.tap { construct_found }
-    when :component
-      @component.new
-    else
-      raise "Unknown reward '#{reward}'"
-    end
-  end
-
-  def construct_found
-    raise 'Construct already found!' if @found_construct
-
-    @found_construct = true
-    signal :found_construct, region: self
   end
 
   # @param value [Integer] The value calculated from the search box.
@@ -65,19 +33,34 @@ class Region
   def outcome(value)
     case value
     when 0..10
-      signal :perfect_zero, region: self if value.zero?
       if @found_construct
-        reward = Array.new(value.zero? ? 2 : 1) { @component.new }
+        Array.new(value.zero? ? 2 : 1) { @component_type.new }
       else
-        construct_found
-        reward = @construct
+        @found_construct = true
+        @construct
       end
     when 11..99
-      reward = @component.new
-    else
-      signal :encounter, region: self, value: value
+      @component_type.new
     end
-    reward
+  end
+end
+
+# Track time spent on in the region.
+class Region::DayTrack
+  attr_reader :costs
+
+  def initialize(costs)
+    @costs = costs
+    @size = costs.size
+    @next_idx = 0
+  end
+
+  def end?
+    @next_idx == @size
+  end
+
+  def next
+    @costs[@next_idx].tap { @next_idx += 1 }
   end
 end
 
@@ -87,13 +70,6 @@ end
 # 3. Now you get one 3-digit number from 1st row and one from 2nd row.
 # 4. search_result = 1st-row number - 2nd row number
 class Region::SearchBox < DiceBoard.new(2, 3)
-  attr_reader :region
-
-  def initialize(region)
-    super()
-    @region = region
-  end
-
   # @return [Integer,Nil] If not filled, nil; otherwise the search result.
   def result
     return @result if @result
