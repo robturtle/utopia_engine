@@ -1,3 +1,7 @@
+AllCops:
+  Exclude:
+    - 'examples/**'
+
 Lint/UnusedMethodArgument:
   AutoCorrect: false
 
