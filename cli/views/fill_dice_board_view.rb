@@ -2,11 +2,10 @@
 
 class FillDiceBoardView
   def initialize(state)
-    board = state.board
     pool = state.try(:pool) || DicePool.new(2).tap(&:clear!)
     basic_view = ConcatView.new(
       "\nCurrent dice board:",
-      DiceBoardView.new(board),
+      DiceBoardView.new(state.board),
       "\nCurrent dices",
       DicePoolView.new(pool)
     )
