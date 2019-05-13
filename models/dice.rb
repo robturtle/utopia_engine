@@ -33,6 +33,14 @@ class DicePool
     @results[index].tap { @results[index] = nil }
   end
 
+  def first_dice
+    @results.find(&:itself)
+  end
+
+  def clear!
+    @results.each_index { |i| @results[i] = nil }
+  end
+
   def availables
     (0...@capacity).select { |i| @results[i] }
   end

@@ -6,6 +6,6 @@ class ConcatView
   end
 
   def to_s
-    @views.join("\n")
+    @views.map(&:to_s).join("\n")
   end
 end
