@@ -34,4 +34,8 @@ class Object
   end
 
   def on(message); end
+
+  def require_all(path)
+    Dir["./#{path}/*.rb"].each { |f| require_relative f }
+  end
 end
