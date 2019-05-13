@@ -19,3 +19,7 @@ end
 def b
   @b ||= BoxedView.new(v)
 end
+
+def keys
+  @keys ||= DiceBoardKeysView.new(box)
+end

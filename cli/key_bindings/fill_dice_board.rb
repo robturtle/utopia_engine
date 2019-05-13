@@ -6,7 +6,7 @@ module FillDiceBoard
 
     def key_bindings
       domain(:pick_dice).each do |idx|
-        bind_key idx, -> { action.run(:pick_dice, idx) }
+        bind_key idx + 1, -> { action.run(:pick_dice, idx) }
       end
     end
   end
@@ -16,7 +16,7 @@ module FillDiceBoard
 
     def key_bindings
       domain(:fill_board).each do |idx|
-        bind_key idx, -> { action.run(:fill_board, idx) }
+        bind_key idx + 1, -> { action.run(:fill_board, idx) }
       end
     end
   end

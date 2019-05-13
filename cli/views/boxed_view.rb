@@ -5,22 +5,23 @@ class BoxedView
 
   def to_s
     lines = view.to_s.lines
-    width = lines.map(&:size).max
+    @width = lines.map(&:size).max
     [
-      separator(width),
+      separator,
       lines.map(&method(:boarded)),
-      separator(width)
+      separator
     ].join("\n")
   end
 
   private
 
-  def separator(width)
-    corner + '-' * width + corner
+  def separator
+    corner + '-' * @width + corner
   end
 
   def boarded(line)
-    '|' + line.rstrip + '|'
+    l = line.rstrip
+    '|' + l + ' ' * (@width - l.size) + '|'
   end
 
   def corner
